@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bilal Ecommerce Manager</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+  body { background: #f1f5f9; color: #1e293b; min-height: 100vh; }
+  #loginScreen { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg,#0f172a,#1e3a8a); }
+  .login-box { background: #fff; padding: 40px; border-radius: 16px; width: 340px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,.4); }
+  .login-box h1 { font-size: 22px; margin-bottom: 6px; }
+  .login-box p { color: #64748b; font-size: 13px; margin-bottom: 20px; }
+  .login-box input { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 15px; text-align: center; margin-bottom: 12px; }
+  .login-box input:focus { outline: none; border-color: #1d4ed8; }
+  .login-box button { width: 100%; padding: 12px; background: #1d4ed8; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; }
+  .login-box button:hover { background: #1e40af; }
+  .err { color: #dc2626; font-size: 13px; margin-bottom: 10px; min-height: 16px; }
+
+  #app { display: none; }
+  header { background: #0f172a; color: #fff; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  header h1 { font-size: 18px; }
+  nav { display: flex; gap: 6px; flex-wrap: wrap; }
+  nav button { background: transparent; color: #cbd5e1; border: none; padding: 9px 14px; border-radius: 8px; cursor: pointer; font-size: 14px; }
+  nav button:hover { background: #1e293b; color: #fff; }
+  nav button.active { background: #1d4ed8; color: #fff; }
+  .logout { background: #dc2626 !important; color: #fff !important; }
+  main { padding: 20px 24px; max-width: 1200px; margin: 0 auto; }
+  .tab { display: none; }
+  .tab.active { display: block; }
+  h2 { font-size: 20px; margin-bottom: 14px; }
+  .card { background: #fff; border-radius: 12px; padding: 18px; box-shadow: 0 1px 4px rgba(0,0,0,.08); margin-bottom: 18px; }
+  .grid { display: grid; gap: 12px; }
+  .g2 { grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); }
+  .g3 { grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); }
+  label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px; }
+  input, select, textarea { width: 100%; padding: 9px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: #fff; }
+  input:focus, select:focus { outline: none; border-color: #1d4ed8; }
+  .btn { padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; background: #1d4ed8; color: #fff; }
+  .btn:hover { opacity: .9; }
+  .btn.green { background: #16a34a; }
+  .btn.red { background: #dc2626; }
+  .btn.gray { background: #64748b; }
+  .btn.small { padding: 5px 10px; font-size: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; background: #f8fafc; color: #475569; font-size: 12px; text-transform: uppercase; padding: 10px 8px; border-bottom: 2px solid #e2e8f0; }
+  td { padding: 9px 8px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+  tr:hover td { background: #f8fafc; }
+  .stat { background: #fff; border-radius: 12px; padding: 16px 18px; box-shadow: 0 1px 4px rgba(0,0,0,.08); border-left: 5px solid #1d4ed8; }
+  .stat .t { font-size: 12px; color: #64748b; text-transform: uppercase; font-weight: 700; }
+  .stat .v { font-size: 22px; font-weight: 700; margin-top: 4px; }
+  .pos { color: #16a34a; } .neg { color: #dc2626; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .b-purchase { background: #fef3c7; color: #92400e; } .b-order { background: #dcfce7; color: #166534; }
+  .b-expense { background: #fee2e2; color: #991b1b; } .b-product { background: #e0e7ff; color: #3730a3; }
+  .b-stock { background: #cffafe; color: #155e75; }
+  .thumb { width: 46px; height: 46px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 1px solid #e2e8f0; }
+  .vrow { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+  .vrow input { width: 110px; }
+  .empty { text-align: center; color: #94a3b8; padding: 24px; font-size: 14px; }
+  .low { background: #fef2f2 !important; }
+  #imgModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 100; align-items: center; justify-content: center; cursor: pointer; }
+  #imgModal img { max-width: 90%; max-height: 90%; border-radius: 8px; }
+  .prod-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .prod-head h3 { font-size: 16px; }
+  .cat { font-size: 12px; color: #64748b; }
+  .inline-form { display: flex; gap: 8px; align-items: end; flex-wrap: wrap; }
+  .inline-form > div { min-width: 100px; }
+  .total-row td { font-weight: 700; background: #f8fafc; }
+  .section-t { font-size: 14px; font-weight: 700; margin: 14px 0 8px; color: #334155; }
+  .warn { background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 14px; }
+
+  @media (max-width: 640px) {
+    header { padding: 12px; flex-direction: column; align-items: stretch; text-align: center; }
+    header h1 { font-size: 16px; }
+    nav { justify-content: center; }
+    nav button { padding: 8px 10px; font-size: 13px; }
+    main { padding: 14px 10px; }
+    h2 { font-size: 17px; }
+    .card { padding: 14px; border-radius: 10px; }
+    .card:has(table) { padding: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { min-width: 640px; font-size: 13px; }
+    th, td { padding: 8px 6px; white-space: nowrap; }
+    td:last-child, th:last-child { padding-right: 12px; }
+    .stat .v { font-size: 19px; }
+    input, select, textarea { font-size: 16px; padding: 10px; }
+    .vrow input { width: 100%; flex: 1 1 40%; }
+    .vrow { display: grid; grid-template-columns: 1fr 1fr; }
+    .vrow button { justify-self: end; }
+    .inline-form > div { flex: 1 1 40%; }
+    .btn { padding: 11px 16px; }
+    .thumb { width: 42px; height: 42px; }
+    .prod-head { align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="login-box">
+    <h1>🔒 Bilal Ecommerce Manager</h1>
+    <p>Password daal kar login karein</p>
+    <div class="err" id="loginErr"></div>
+    <input type="password" id="loginPass" placeholder="Password" onkeydown="if(event.key==='Enter')login()">
+    <button onclick="login()">Login</button>
+  </div>
+</div>
+
+<div id="app">
+  <header>
+    <h1>📦 Bilal Ecommerce Manager</h1>
+    <nav id="nav"></nav>
+    <button class="btn red small" onclick="logout()">Logout</button>
+  </header>
+  <main>
+    <div class="tab" id="tab-dashboard"></div>
+    <div class="tab" id="tab-products"></div>
+    <div class="tab" id="tab-purchases"></div>
+    <div class="tab" id="tab-orders"></div>
+    <div class="tab" id="tab-expenses"></div>
+    <div class="tab" id="tab-history"></div>
+  </main>
+</div>
+
+<div id="imgModal" onclick="this.style.display='none'"><img id="imgModalImg"></div>
+
+<script>
+let S = { products: [], purchases: [], orders: [], expenses: [], history: [] };
+const KEY = 'bilalEcommerceData_v1';
+
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function today(){ return new Date().toISOString().slice(0,10); }
+function fmt(n){ const v = Math.round(n||0); return 'Rs ' + v.toLocaleString('en-PK'); }
+function nowStr(){ return new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function load(){ try { const d = JSON.parse(localStorage.getItem(KEY)); if(d) S = d; } catch(e){} }
+function save(){ localStorage.setItem(KEY, JSON.stringify(S)); }
+function log(type, text, amount){ S.history.unshift({ id: uid(), date: nowStr(), type, text, amount: amount||0 }); }
+
+function findVariant(pid, size, color){
+  const p = S.products.find(x=>x.id===pid); if(!p) return null;
+  return p.variants.find(v=>v.size===size && v.color===color) || null;
+}
+
+function login(){
+  const pass = document.getElementById('loginPass').value;
+  if(pass === 'bilal123'){
+    sessionStorage.setItem('bilalAuth','1');
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('app').style.display='block';
+    startApp();
+  } else {
+    document.getElementById('loginErr').textContent = 'Galat password! Dobara koshish karein.';
+  }
+}
+function logout(){ sessionStorage.removeItem('bilalAuth'); location.reload(); }
+
+const TABS = [
+  ['dashboard','📊 Balance Sheet'],
+  ['products','📦 Products'],
+  ['purchases','🛒 Purchases'],
+  ['orders','🧾 Orders'],
+  ['expenses','💸 Expenses'],
+  ['history','🕘 History']
+];
+let currentTab = 'dashboard';
+
+function startApp(){
+  load();
+  const nav = document.getElementById('nav');
+  nav.innerHTML = TABS.map(([id,label]) => `<button id="nav-${id}" onclick="showTab('${id}')">${label}</button>`).join('');
+  showTab('dashboard');
+}
+
+function showTab(id){
+  currentTab = id;
+  TABS.forEach(([t]) => document.getElementById('nav-'+t).classList.toggle('active', t===id));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  renderTab(id);
+}
+
+function renderTab(id){
+  if(id==='dashboard') renderDashboard();
+  else if(id==='products') renderProducts();
+  else if(id==='purchases') renderPurchases();
+  else if(id==='orders') renderOrders();
+  else if(id==='expenses') renderExpenses();
+  else if(id==='history') renderHistory();
+}
+
+function totals(){
+  const sales = S.orders.reduce((a,o)=>a+o.total,0);
+  const purchaseCost = S.purchases.reduce((a,p)=>a+p.total,0);
+  const exp = S.expenses.reduce((a,e)=>a+e.amount,0);
+  const profit = sales - purchaseCost - exp;
+  let stockValue = 0, stockQty = 0;
+  S.products.forEach(p=>p.variants.forEach(v=>{ stockValue += (v.cost||0)*v.qty; stockQty += v.qty; }));
+  return { sales, purchaseCost, exp, profit, stockValue, stockQty };
+}
+
+function renderDashboard(){
+  const t = totals();
+  const profitCls = t.profit >= 0 ? 'pos' : 'neg';
+  const lowStock = [];
+  S.products.forEach(p=>p.variants.forEach(v=>{ if(v.qty<=2) lowStock.push(`${esc(p.name)} — ${esc(v.size)}/${esc(v.color)} (only ${v.qty})`); }));
+  let html = `
+  <h2>📊 Balance Sheet</h2>
+  <div class="grid g3">
+    <div class="stat" style="border-color:#16a34a"><div class="t">Total Sales (Income)</div><div class="v pos">${fmt(t.sales)}</div></div>
+    <div class="stat" style="border-color:#f59e0b"><div class="t">Total Purchases</div><div class="v">${fmt(t.purchaseCost)}</div></div>
+    <div class="stat" style="border-color:#dc2626"><div class="t">Total Expenses</div><div class="v">${fmt(t.exp)}</div></div>
+    <div class="stat" style="border-color:${t.profit>=0?'#16a34a':'#dc2626'}"><div class="t">Net Profit / Loss</div><div class="v ${profitCls}">${t.profit>=0?'+ ':''}${fmt(t.profit)}</div></div>
+    <div class="stat" style="border-color:#0ea5e9"><div class="t">Stock In Hand</div><div class="v">${t.stockQty} pcs</div></div>
+    <div class="stat" style="border-color:#8b5cf6"><div class="t">Stock Value (Cost)</div><div class="v">${fmt(t.stockValue)}</div></div>
+  </div>`;
+
+  if(lowStock.length){
+    html += `<div class="warn" style="margin-top:16px"><b>⚠️ Low Stock Alert:</b> ${lowStock.map(esc).join(' &nbsp;•&nbsp; ')}</div>`;
+  }
+
+  html += `<div class="card" style="margin-top:16px"><div class="section-t">Profit & Loss Summary</div>
+  <table>
+    <tr><th>Item</th><th style="text-align:right">Amount</th></tr>
+    <tr><td>Total Sales</td><td class="pos" style="text-align:right">+ ${fmt(t.sales)}</td></tr>
+    <tr><td>Purchases (stock cost)</td><td class="neg" style="text-align:right">- ${fmt(t.purchaseCost)}</td></tr>
+    <tr><td>Other Expenses</td><td class="neg" style="text-align:right">- ${fmt(t.exp)}</td></tr>
+    <tr class="total-row"><td>NET ${t.profit>=0?'PROFIT':'LOSS'}</td><td class="${profitCls}" style="text-align:right">${t.profit>=0?'+ ':''}${fmt(t.profit)}</td></tr>
+  </table></div>`;
+
+  html += `<div class="card"><div class="section-t">Stock Details</div>`;
+  if(!S.products.length){ html += `<div class="empty">Koi product nahi. Products tab se add karein.</div>`; }
+  else {
+    html += `<table><tr><th>Product</th><th>Size</th><th>Color</th><th>Qty</th><th>Cost</th><th>Sale Price</th><th style="text-align:right">Value</th></tr>`;
+    S.products.forEach(p=>p.variants.forEach(v=>{
+      html += `<tr class="${v.qty<=2?'low':''}"><td>${esc(p.name)}</td><td>${esc(v.size)}</td><td>${esc(v.color)}</td><td><b>${v.qty}</b></td><td>${fmt(v.cost)}</td><td>${fmt(v.price)}</td><td style="text-align:right">${fmt((v.cost||0)*v.qty)}</td></tr>`;
+    }));
+    html += `</table>`;
+  }
+  html += `</div>`;
+  document.getElementById('tab-dashboard').innerHTML = html;
+}
+
+let newVariants = [];
+function renderProducts(){
+  let rows = newVariants.map((v,i)=>`
+    <div class="vrow">
+      <input placeholder="Size (e.g. 32)" value="${esc(v.size)}" oninput="newVariants[${i}].size=this.value">
+      <input placeholder="Color" value="${esc(v.color)}" oninput="newVariants[${i}].color=this.value">
+      <input type="number" min="0" placeholder="Qty" value="${v.qty}" oninput="newVariants[${i}].qty=+this.value">
+      <input type="number" min="0" placeholder="Cost" value="${v.cost}" oninput="newVariants[${i}].cost=+this.value">
+      <input type="number" min="0" placeholder="Sale Price" value="${v.price}" oninput="newVariants[${i}].price=+this.value">
+      <button class="btn red small" onclick="newVariants.splice(${i},1);renderProducts()">✕</button>
+    </div>`).join('');
+  let html = `
+  <h2>📦 Products & Stock</h2>
+  <div class="card">
+    <div class="section-t">Add New Product</div>
+    <div class="grid g2" style="margin-bottom:10px">
+      <div><label>Product Name</label><input id="pName" placeholder="e.g. Cotton Trouser"></div>
+      <div><label>Category</label><input id="pCat" placeholder="e.g. Trouser / Shirt"></div>
+    </div>
+    <div class="section-t">Variants (Size / Color / Qty / Cost / Sale Price)</div>
+    ${rows || '<div class="empty" style="padding:8px">Koi variant nahi — niche se add karein.</div>'}
+    <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
+      <button class="btn gray" onclick="newVariants.push({size:'',color:'',qty:0,cost:0,price:0});renderProducts()">+ Add Size/Color Row</button>
+      <button class="btn green" onclick="saveProduct()">💾 Save Product</button>
+    </div>
+  </div>
+  <div class="section-t">All Products</div>`;
+  if(!S.products.length){ html += `<div class="card"><div class="empty">Abhi koi product nahi.</div></div>`; }
+  S.products.forEach(p=>{
+    html += `<div class="card"><div class="prod-head"><div><h3>${esc(p.name)}</h3><span class="cat">${esc(p.category||'')}</span></div>
+    <button class="btn red small" onclick="deleteProduct('${p.id}')">🗑 Delete Product</button></div>`;
+    if(p.variants.length){
+      html += `<table><tr><th>Size</th><th>Color</th><th>Qty</th><th>Cost</th><th>Sale Price</th><th style="width:220px">Adjust Stock</th></tr>`;
+      p.variants.forEach((v,i)=>{
+        html += `<tr><td>${esc(v.size)}</td><td>${esc(v.color)}</td><td><b>${v.qty}</b></td><td>${fmt(v.cost)}</td><td>${fmt(v.price)}</td>
+        <td><div style="display:flex;gap:6px"><input type="number" min="0" value="${v.qty}" id="adj-${p.id}-${i}" style="width:80px;padding:5px"><button class="btn gray small" onclick="adjustStock('${p.id}',${i})">Update</button><button class="btn red small" onclick="deleteVariant('${p.id}',${i})">✕</button></div></td></tr>`;
+      });
+      html += `</table>`;
+    }
+    html += `<div class="inline-form" style="margin-top:10px">
+      <div><label>Size</label><input id="av-size-${p.id}" style="width:90px"></div>
+      <div><label>Color</label><input id="av-color-${p.id}" style="width:110px"></div>
+      <div><label>Qty</label><input id="av-qty-${p.id}" type="number" min="0" style="width:70px"></div>
+      <div><label>Cost</label><input id="av-cost-${p.id}" type="number" min="0" style="width:90px"></div>
+      <div><label>Sale</label><input id="av-price-${p.id}" type="number" min="0" style="width:90px"></div>
+      <button class="btn green small" onclick="addVariant('${p.id}')">+ Add Variant</button>
+    </div></div>`;
+  });
+  document.getElementById('tab-products').innerHTML = html;
+}
+
+function saveProduct(){
+  const name = document.getElementById('pName').value.trim();
+  const cat = document.getElementById('pCat').value.trim();
+  if(!name){ alert('Product name likhein!'); return; }
+  if(!newVariants.length){ alert('Kam az kam aik variant (size/color) add karein!'); return; }
+  for(const v of newVariants){ if(!v.size.trim() && !v.color.trim()){ alert('Har variant me size ya color likhein!'); return; } }
+  const p = { id: uid(), name, category: cat, variants: newVariants.map(v=>({ size:v.size.trim()||'-', color:v.color.trim()||'-', qty:+v.qty||0, cost:+v.cost||0, price:+v.price||0 })) };
+  S.products.push(p);
+  log('product', `Product added: ${name} (${p.variants.length} variants)`, 0);
+  newVariants = [];
+  save(); renderProducts();
+}
+
+function addVariant(pid){
+  const p = S.products.find(x=>x.id===pid);
+  const size = document.getElementById('av-size-'+pid).value.trim() || '-';
+  const color = document.getElementById('av-color-'+pid).value.trim() || '-';
+  const qty = +document.getElementById('av-qty-'+pid).value || 0;
+  const cost = +document.getElementById('av-cost-'+pid).value || 0;
+  const price = +document.getElementById('av-price-'+pid).value || 0;
+  p.variants.push({ size, color, qty, cost, price });
+  log('stock', `Variant added to ${p.name}: ${size}/${color} qty ${qty}`, 0);
+  save(); renderProducts();
+}
+
+function adjustStock(pid, i){
+  const p = S.products.find(x=>x.id===pid);
+  const v = p.variants[i];
+  const nq = +document.getElementById(`adj-${pid}-${i}`).value || 0;
+  if(nq === v.qty) return;
+  log('stock', `Stock adjusted: ${p.name} ${v.size}/${v.color} ${v.qty} → ${nq}`, 0);
+  v.qty = nq;
+  save(); renderProducts();
+}
+
+function deleteVariant(pid, i){
+  const p = S.products.find(x=>x.id===pid);
+  const v = p.variants[i];
+  if(!confirm(`Delete variant ${v.size}/${v.color} of ${p.name}?`)) return;
+  log('stock', `Variant deleted: ${p.name} ${v.size}/${v.color}`, 0);
+  p.variants.splice(i,1);
+  save(); renderProducts();
+}
+
+function deleteProduct(pid){
+  const p = S.products.find(x=>x.id===pid);
+  if(!confirm(`Delete product "${p.name}"? History safe rahegi.`)) return;
+  log('product', `Product deleted: ${p.name}`, 0);
+  S.products = S.products.filter(x=>x.id!==pid);
+  save(); renderProducts();
+}
+
+let currentImage = null;
+function renderPurchases(){
+  let html = `
+  <h2>🛒 Purchases (Stock In)</h2>
+  <div class="card">
+    <div class="section-t">New Purchase</div>
+    <div class="grid g2">
+      <div><label>Date</label><input type="date" id="puDate" value="${today()}"></div>
+      <div><label>Product</label><select id="puProduct" onchange="puFillVariants()"><option value="">-- Select Product --</option>${S.products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select></div>
+      <div><label>Variant (Size/Color)</label><select id="puVariant" onchange="puVariantChange()"><option value="">-- Select --</option></select></div>
+      <div id="puNewWrap" style="display:none">
+        <label>New Size / Color</label>
+        <div style="display:flex;gap:6px"><input id="puNewSize" placeholder="Size" style="width:50%"><input id="puNewColor" placeholder="Color" style="width:50%"></div>
+      </div>
+      <div><label>Quantity</label><input type="number" id="puQty" min="1" value="1"></div>
+      <div><label>Unit Cost (Rs)</label><input type="number" id="puCost" min="0"></div>
+      <div><label>Bill Image (upload)</label><input type="file" id="puBill" accept="image/*" onchange="pickBill(this)"></div>
+      <div><label>Note</label><input id="puNote" placeholder="Supplier / note"></div>
+    </div>
+    <div id="billPreview" style="margin-top:10px"></div>
+    <button class="btn green" style="margin-top:12px" onclick="savePurchase()">💾 Save Purchase (Stock +)</button>
+  </div>
+  <div class="section-t">Purchase History</div>
+  <div class="card" style="padding:0">`;
+  if(!S.purchases.length){ html += `<div class="empty">Koi purchase nahi hui.</div>`; }
+  else {
+    html += `<table><tr><th>Date</th><th>Product</th><th>Size</th><th>Color</th><th>Qty</th><th>Unit Cost</th><th>Total</th><th>Bill</th><th>Note</th></tr>`;
+    [...S.purchases].reverse().forEach(p=>{
+      html += `<tr><td>${esc(p.date)}</td><td>${esc(p.productName)}</td><td>${esc(p.size)}</td><td>${esc(p.color)}</td><td><b>${p.qty}</b></td><td>${fmt(p.unitCost)}</td><td class="neg"><b>${fmt(p.total)}</b></td>
+      <td>${p.bill ? `<img class="thumb" src="${p.bill}" onclick="showImg(this.src)">` : '—'}</td><td>${esc(p.note||'')}</td></tr>`;
+    });
+    html += `</table>`;
+  }
+  html += `</div>`;
+  document.getElementById('tab-purchases').innerHTML = html;
+  currentImage = null;
+}
+
+function puFillVariants(){
+  const pid = document.getElementById('puProduct').value;
+  const sel = document.getElementById('puVariant');
+  const p = S.products.find(x=>x.id===pid);
+  if(!p){ sel.innerHTML = '<option value="">-- Select --</option>'; document.getElementById('puNewWrap').style.display='none'; return; }
+  sel.innerHTML = `<option value="">-- Select --</option><option value="NEW">➕ New Size/Color</option>` +
+    p.variants.map((v,i)=>`<option value="${i}">${esc(v.size)} / ${esc(v.color)} (stock: ${v.qty})</option>`).join('');
+  document.getElementById('puNewWrap').style.display='none';
+}
+function puVariantChange(){
+  const val = document.getElementById('puVariant').value;
+  document.getElementById('puNewWrap').style.display = val==='NEW' ? 'block' : 'none';
+}
+function pickBill(inp){
+  const f = inp.files[0];
+  if(!f){ currentImage = null; document.getElementById('billPreview').innerHTML=''; return; }
+  const r = new FileReader();
+  r.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const max = 900;
+      let w = img.width, h = img.height;
+      if(w > max){ h = h*max/w; w = max; }
+      const c = document.createElement('canvas'); c.width=w; c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      currentImage = c.toDataURL('image/jpeg',0.7);
+      document.getElementById('billPreview').innerHTML = `<img class="thumb" src="${currentImage}" onclick="showImg(this.src)"> <span style="font-size:12px;color:#64748b">Bill image ready (click to view)</span>`;
+    };
+    img.src = e.target.result;
+  };
+  r.readAsDataURL(f);
+}
+
+function savePurchase(){
+  const pid = document.getElementById('puProduct').value;
+  const p = S.products.find(x=>x.id===pid);
+  if(!p){ alert('Product select karein!'); return; }
+  const vSel = document.getElementById('puVariant').value;
+  const qty = +document.getElementById('puQty').value || 0;
+  const cost = +document.getElementById('puCost').value || 0;
+  if(qty<=0){ alert('Sahi quantity likhein!'); return; }
+  let size, color, variant;
+  if(vSel === 'NEW'){
+    size = document.getElementById('puNewSize').value.trim() || '-';
+    color = document.getElementById('puNewColor').value.trim() || '-';
+    variant = findVariant(pid,size,color);
+    if(!variant){ variant = { size, color, qty:0, cost, price:0 }; p.variants.push(variant); }
+  } else {
+    variant = p.variants[+vSel];
+    if(!variant){ alert('Variant select karein!'); return; }
+    size = variant.size; color = variant.color;
+  }
+  variant.qty += qty;
+  if(cost>0) variant.cost = cost;
+  const rec = { id: uid(), date: document.getElementById('puDate').value || today(), productId: pid, productName: p.name, size, color, qty, unitCost: cost, total: qty*cost, bill: currentImage, note: document.getElementById('puNote').value.trim() };
+  S.purchases.push(rec);
+  log('purchase', `Purchase: ${p.name} ${size}/${color} × ${qty} @ ${fmt(cost)}`, -rec.total);
+  save(); renderPurchases();
+}
+
+function renderOrders(){
+  let html = `
+  <h2>🧾 Orders (Stock Out)</h2>
+  <div class="card">
+    <div class="section-t">New Order</div>
+    <div class="grid g2">
+      <div><label>Date</label><input type="date" id="orDate" value="${today()}"></div>
+      <div><label>Product</label><select id="orProduct" onchange="orFillVariants()"><option value="">-- Select Product --</option>${S.products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select></div>
+      <div><label>Variant (Size/Color)</label><select id="orVariant" onchange="orPriceHint()"><option value="">-- Select --</option></select></div>
+      <div><label>Quantity</label><input type="number" id="orQty" min="1" value="1"></div>
+      <div><label>Sale Price / Unit (Rs)</label><input type="number" id="orPrice" min="0"></div>
+      <div><label>Customer Name</label><input id="orCustomer" placeholder="Customer"></div>
+      <div><label>Note</label><input id="orNote" placeholder="Note"></div>
+    </div>
+    <div id="orStockHint" style="margin-top:8px;font-size:13px;color:#64748b"></div>
+    <button class="btn green" style="margin-top:12px" onclick="saveOrder()">💾 Save Order (Stock −)</button>
+  </div>
+  <div class="section-t">Order History</div>
+  <div class="card" style="padding:0">`;
+  if(!S.orders.length){ html += `<div class="empty">Koi order nahi.</div>`; }
+  else {
+    html += `<table><tr><th>Date</th><th>Product</th><th>Size</th><th>Color</th><th>Qty</th><th>Price</th><th>Total</th><th>Customer</th><th>Note</th></tr>`;
+    [...S.orders].reverse().forEach(o=>{
+      html += `<tr><td>${esc(o.date)}</td><td>${esc(o.productName)}</td><td>${esc(o.size)}</td><td>${esc(o.color)}</td><td><b>${o.qty}</b></td><td>${fmt(o.unitPrice)}</td><td class="pos"><b>${fmt(o.total)}</b></td><td>${esc(o.customer||'')}</td><td>${esc(o.note||'')}</td></tr>`;
+    });
+    html += `</table>`;
+  }
+  html += `</div>`;
+  document.getElementById('tab-orders').innerHTML = html;
+}
+
+function orFillVariants(){
+  const pid = document.getElementById('orProduct').value;
+  const sel = document.getElementById('orVariant');
+  const p = S.products.find(x=>x.id===pid);
+  if(!p){ sel.innerHTML = '<option value="">-- Select --</option>'; return; }
+  sel.innerHTML = '<option value="">-- Select --</option>' + p.variants.map((v,i)=>`<option value="${i}">${esc(v.size)} / ${esc(v.color)} — stock: ${v.qty}</option>`).join('');
+  document.getElementById('orStockHint').textContent='';
+}
+function orPriceHint(){
+  const pid = document.getElementById('orProduct').value;
+  const i = +document.getElementById('orVariant').value;
+  const p = S.products.find(x=>x.id===pid);
+  const hint = document.getElementById('orStockHint');
+  if(!p || document.getElementById('orVariant').value===''){ hint.textContent=''; return; }
+  const v = p.variants[i];
+  if(v.price) document.getElementById('orPrice').value = v.price;
+  hint.innerHTML = `Stock available: <b>${v.qty}</b> pcs${v.qty<=2?' <span style="color:#dc2626">(low!)</span>':''}`;
+}
+
+function saveOrder(){
+  const pid = document.getElementById('orProduct').value;
+  const p = S.products.find(x=>x.id===pid);
+  if(!p){ alert('Product select karein!'); return; }
+  const vSel = document.getElementById('orVariant').value;
+  if(vSel===''){ alert('Variant select karein!'); return; }
+  const v = p.variants[+vSel];
+  const qty = +document.getElementById('orQty').value || 0;
+  const price = +document.getElementById('orPrice').value || 0;
+  if(qty<=0){ alert('Sahi quantity likhein!'); return; }
+  if(qty > v.qty){ alert(`Order nahi ho sakta! Stock sirf ${v.qty} pcs hai (${p.name} ${v.size}/${v.color}). Pehle purchase karein.`); return; }
+  v.qty -= qty;
+  if(price>0) v.price = price;
+  const rec = { id: uid(), date: document.getElementById('orDate').value || today(), productId: pid, productName: p.name, size: v.size, color: v.color, qty, unitPrice: price, total: qty*price, customer: document.getElementById('orCustomer').value.trim(), note: document.getElementById('orNote').value.trim() };
+  S.orders.push(rec);
+  log('order', `Order: ${p.name} ${v.size}/${v.color} × ${qty} @ ${fmt(price)}${rec.customer? ' — '+rec.customer : ''}`, rec.total);
+  save(); renderOrders();
+}
+
+function renderExpenses(){
+  let html = `
+  <h2>💸 Expenses</h2>
+  <div class="card">
+    <div class="section-t">Add Expense</div>
+    <div class="grid g2">
+      <div><label>Date</label><input type="date" id="exDate" value="${today()}"></div>
+      <div><label>Title</label><input id="exTitle" placeholder="e.g. Rent / Transport / Packing"></div>
+      <div><label>Amount (Rs)</label><input type="number" id="exAmount" min="0"></div>
+      <div><label>Note</label><input id="exNote" placeholder="Note"></div>
+    </div>
+    <button class="btn red" style="margin-top:12px" onclick="saveExpense()">💾 Save Expense</button>
+  </div>
+  <div class="section-t">Expense History</div>
+  <div class="card" style="padding:0">`;
+  if(!S.expenses.length){ html += `<div class="empty">Koi expense nahi.</div>`; }
+  else {
+    html += `<table><tr><th>Date</th><th>Title</th><th>Amount</th><th>Note</th><th></th></tr>`;
+    [...S.expenses].reverse().forEach(e=>{
+      html += `<tr><td>${esc(e.date)}</td><td>${esc(e.title)}</td><td class="neg"><b>${fmt(e.amount)}</b></td><td>${esc(e.note||'')}</td><td><button class="btn red small" onclick="deleteExpense('${e.id}')">✕</button></td></tr>`;
+    });
+    const tot = S.expenses.reduce((a,e)=>a+e.amount,0);
+    html += `<tr class="total-row"><td colspan="2">TOTAL</td><td class="neg">${fmt(tot)}</td><td colspan="2"></td></tr></table>`;
+  }
+  html += `</div>`;
+  document.getElementById('tab-expenses').innerHTML = html;
+}
+
+function saveExpense(){
+  const title = document.getElementById('exTitle').value.trim();
+  const amount = +document.getElementById('exAmount').value || 0;
+  if(!title || amount<=0){ alert('Title aur amount likhein!'); return; }
+  const e = { id: uid(), date: document.getElementById('exDate').value || today(), title, amount, note: document.getElementById('exNote').value.trim() };
+  S.expenses.push(e);
+  log('expense', `Expense: ${title}`, -amount);
+  save(); renderExpenses();
+}
+function deleteExpense(id){
+  const e = S.expenses.find(x=>x.id===id);
+  if(!confirm(`Delete expense "${e.title}"?`)) return;
+  log('expense', `Expense deleted: ${e.title} (${fmt(e.amount)})`, e.amount);
+  S.expenses = S.expenses.filter(x=>x.id!==id);
+  save(); renderExpenses();
+}
+
+function renderHistory(){
+  let html = `<h2>🕘 Full History</h2>
+  <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+    <button class="btn gray" onclick="exportData()">⬇ Backup (JSON)</button>
+    <label class="btn gray" style="display:inline-block">⬆ Restore<input type="file" accept=".json" style="display:none" onchange="importData(this)"></label>
+    <button class="btn red" onclick="wipeAll()">🗑 Clear All Data</button>
+  </div>
+  <div class="card" style="padding:0">`;
+  if(!S.history.length){ html += `<div class="empty">Koi history nahi.</div>`; }
+  else {
+    const badge = { purchase:'b-purchase', order:'b-order', expense:'b-expense', product:'b-product', stock:'b-stock' };
+    const label = { purchase:'PURCHASE', order:'ORDER', expense:'EXPENSE', product:'PRODUCT', stock:'STOCK' };
+    html += `<table><tr><th>Date/Time</th><th>Type</th><th>Detail</th><th style="text-align:right">Amount</th></tr>`;
+    S.history.forEach(h=>{
+      const cls = h.amount>0 ? 'pos' : (h.amount<0 ? 'neg' : '');
+      html += `<tr><td>${esc(h.date)}</td><td><span class="badge ${badge[h.type]||''}">${label[h.type]||h.type.toUpperCase()}</span></td><td>${esc(h.text)}</td><td class="${cls}" style="text-align:right">${h.amount? (h.amount>0?'+ ':'− ')+fmt(Math.abs(h.amount)) : '—'}</td></tr>`;
+    });
+    html += `</table>`;
+  }
+  html += `</div>`;
+  document.getElementById('tab-history').innerHTML = html;
+}
+
+function exportData(){
+  const blob = new Blob([JSON.stringify(S,null,2)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'bilal-ecommerce-backup-' + today() + '.json';
+  a.click();
+}
+function importData(inp){
+  const f = inp.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      const d = JSON.parse(e.target.result);
+      if(!d.products || !d.history) throw 0;
+      if(!confirm('Current data replace ho jayega. Continue?')) return;
+      S = d; save(); renderTab(currentTab); alert('Data restore ho gaya!');
+    } catch(x){ alert('Galat backup file!'); }
+  };
+    r.readAsText(f);
+}
+function wipeAll(){
+  if(!confirm('SARA data delete ho jayega — products, purchases, orders, expenses, history! Sure?')) return;
+  if(!confirm('Pakka? Ye wapsi nahi hoti (pehle Backup le lein).')) return;
+  S = { products: [], purchases: [], orders: [], expenses: [], history: [] };
+  save(); renderTab(currentTab);
+}
+
+function showImg(src){ document.getElementById('imgModalImg').src = src; document.getElementById('imgModal').style.display='flex'; }
+
+if(sessionStorage.getItem('bilalAuth')==='1'){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('app').style.display='block';
+  startApp();
+}
+</script>
+</body>
+</html>
